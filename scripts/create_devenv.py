@@ -135,6 +135,11 @@ def parse_arguments() -> Namespace:
         action="store_true",
         help="Only download the components, don't install them.",
     )
+    parser.add_argument(
+        "--torrent", 
+        action="store_true", 
+        help="Use torrent downloads where possible. Requires aria2 to already be installed on *nix systems."
+    )
 
     return parser.parse_args()
 
@@ -224,7 +229,7 @@ def download_requirement_torrent(dl_cache_path, requirement, aria2c_path):
     os.removedirs(str(dl_cache_path / requirement["torrent_dirname"]))
 
 
-def download_requirements(dl_cache_path, steps):
+def download_requirements(dl_cache_path, steps, should_torrent):
     requirements = [
         {
             "name": "Direct X 8.0",
@@ -283,8 +288,7 @@ def download_requirements(dl_cache_path, steps):
         },
     ]
 
-    useTorrents = input("Would you like to download using torrents? (y/n) ")
-    if useTorrents.lower() == "y":
+    if should_torrent:
         # Download aria2c
         if sys.platform == "win32":
             aria2c_path = dl_cache_path / "aria2c.exe"
@@ -492,7 +496,7 @@ def main(args: Namespace) -> int:
         steps = set(args.only)
 
     os.makedirs(str(dl_cache_path), exist_ok=True)
-    download_requirements(dl_cache_path, steps)
+    download_requirements(dl_cache_path, steps, args.torrent)
 
     if not args.download:
         program_files = output_path / "PROGRAM FILES"
