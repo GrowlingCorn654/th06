@@ -212,6 +212,8 @@ def download_requirement(dl_cache_path, requirement):
         raise Exception(
             "Download failed: Got hash " + hash + ", expected " + requirement["sha256"]
         )
+
+
 def download_requirement_torrent(dl_cache_path, requirement, aria2c_path):
     path = dl_cache_path / requirement["filename"]
     if path.exists() and get_sha256(path) == requirement["sha256"]:
@@ -219,13 +221,25 @@ def download_requirement_torrent(dl_cache_path, requirement, aria2c_path):
 
     print("Downloading " + requirement["name"] + " using torrent")
     # Run aria2c to download the torrent, make sure to save only the file we want.
-    subprocess.check_call(str(aria2c_path) + " --dir " + str(dl_cache_path) + " --summary-interval=0 --seed-time=0 --select-file=4 " + str(requirement["torrent"]), shell=True)
+    subprocess.check_call(
+        str(aria2c_path)
+        + " --dir "
+        + str(dl_cache_path)
+        + " --summary-interval=0 --seed-time=0 --select-file=4 "
+        + str(requirement["torrent"]),
+        shell=True,
+    )
     # After downloading, take the target file in the torrent_directory and move it back to the root of the dl_cache_path
-    shutil.move(str(dl_cache_path / requirement["torrent_dirname"] / requirement["filename"]), str(path))
+    shutil.move(
+        str(dl_cache_path / requirement["torrent_dirname"] / requirement["filename"]),
+        str(path),
+    )
     print(clear_line_sequence, end="", flush=True, file=sys.stdout)
     hash = get_sha256(path)
     if hash != requirement["sha256"]:
-        raise Exception("Download failed: Got hash " + hash + ", expected " + requirement["sha256"])
+        raise Exception(
+            "Download failed: Got hash " + hash + ", expected " + requirement["sha256"]
+        )
     os.removedirs(str(dl_cache_path / requirement["torrent_dirname"]))
 
 
@@ -294,18 +308,31 @@ def download_requirements(dl_cache_path, steps, should_torrent):
             aria2c_path = dl_cache_path / "aria2c.exe"
             if not aria2c_path.exists():
                 print("Downloading aria2c")
-                urllib.request.urlretrieve("https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0-win-64bit-build1.zip", str(dl_cache_path / "aria2.zip"))
-                shutil.unpack_archive(str(dl_cache_path / "aria2.zip"), str(dl_cache_path), format="zip")
+                urllib.request.urlretrieve(
+                    "https://github.com/aria2/aria2/releases/download/release-1.37.0/aria2-1.37.0-win-64bit-build1.zip",
+                    str(dl_cache_path / "aria2.zip"),
+                )
+                shutil.unpack_archive(
+                    str(dl_cache_path / "aria2.zip"), str(dl_cache_path), format="zip"
+                )
                 os.remove(str(dl_cache_path / "aria2.zip"))
                 # Move aria2c to the correct location
-                shutil.move(str(dl_cache_path / "aria2-1.37.0-win-64bit-build1" / "aria2c.exe"), str(aria2c_path))
-                shutil.rmtree(str(dl_cache_path / "aria2-1.37.0-win-64bit-build1"), ignore_errors=True)
+                shutil.move(
+                    str(dl_cache_path / "aria2-1.37.0-win-64bit-build1" / "aria2c.exe"),
+                    str(aria2c_path),
+                )
+                shutil.rmtree(
+                    str(dl_cache_path / "aria2-1.37.0-win-64bit-build1"),
+                    ignore_errors=True,
+                )
         else:
             # assuming its already in their PATH, because it should be installed before selecting torrent downloads on linux.
             aria2c_path = "aria2c"
             if not shutil.which(aria2c_path):
                 # throw an error if aria2c is not installed
-                raise Exception("aria2c is not installed, please install it before selecting torrent downloads!")
+                raise Exception(
+                    "aria2c is not installed, please install it before selecting torrent downloads!"
+                )
         for requirement in requirements:
             if "torrent" in requirement:
                 download_requirement_torrent(dl_cache_path, requirement, aria2c_path)
