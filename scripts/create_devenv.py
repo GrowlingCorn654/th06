@@ -136,9 +136,9 @@ def parse_arguments() -> Namespace:
         help="Only download the components, don't install them.",
     )
     parser.add_argument(
-        "--torrent", 
-        action="store_true", 
-        help="Use torrent downloads where possible. Requires aria2 to already be installed on *nix systems."
+        "--torrent",
+        action="store_true",
+        help="Use torrent downloads where possible. Requires aria2 to already be installed on *nix systems.",
     )
 
     return parser.parse_args()
